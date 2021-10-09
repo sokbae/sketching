@@ -1,0 +1,6 @@
+# Rcpp 
+useDynLib(sketching) 
+exportPattern("ˆ[[:alpha:]]+") 
+importFrom(Rcpp, evalCpp)
+# Command
+export(count_sketch)
