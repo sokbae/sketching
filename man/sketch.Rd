@@ -7,24 +7,50 @@
 sketch(data, m, method = "unif")
 }
 \arguments{
-\item{data}{(n times d)-dimensional matrix of data}
+\item{data}{(n times d)-dimensional matrix of data. 
+The first column needs to be a vector of the dependent variable (Y) for leverage score sampling.}
 
 \item{m}{subsample size that is less than n}
 
-\item{method}{method for sketching}
+\item{method}{method for sketching:
+"unif" uniform sampling without replacement (default);
+"unif_with_replacement" uniform sampling with replacement;
+"leverage" leverage score sampling;
+"CountSketch" CountSketch;
+"fft" subsampled randomized trigonometric transforms using the real part of 
+fast discrete Fourier transform (stats::ftt).}
 }
 \value{
-(m times d)-dimensional matrix of data
+An S3 object has the following elements.
+\item{subsample}{(m times d)-dimensional matrix of data}
+\item{prob}{m-dimensional vector of probabilities. 
+This output is generated only when "leverage" is selected.}
 }
 \description{
 Provides a subsample of data using sketches
 }
 \examples{
-fullsample <- matrix(rnorm(100), nrow = 20,ncol = 5)
-subsample <-  sketch(fullsample, 10)
-subsample <-  sketch(fullsample, 10, "unif__with_replacement")
-subsample <-  sketch(fullsample, 10, "CountSketch")
-subsample <-  sketch(fullsample, 10, "fft")
+## Least squares: sketch and solve
+# setup
+n <- 1e+6 # full sample size
+d <- 5    # dimension of covariates
+m <- 1e+3 # sketch size
+# generate psuedo-data
+X <- matrix(stats::rnorm(n*d), nrow = n, ncol = d)
+beta <- matrix(rep(1,d), nrow = d, ncol = 1)
+eps <- matrix(stats::rnorm(n), nrow = n, ncol = 1)
+Y <- X \%*\% beta + eps
+intercept <- matrix(rep(1,n), nrow = n, ncol = 1)
+# full sample including the intercept term
+fullsample <- cbind(Y,intercept,X)
+# generate a sketch using CountSketch
+s_cs <-  sketch(fullsample, m, "CountSketch")
+# solve without the intercept
+ls_cs <- lm(s_cs$subsample[,1] ~ s_cs$subsample[,2] - 1)
+# generate a sketch using leverage score sampling
+s_lev <-  sketch(fullsample, m, "leverage")
+# solve without the intercept with weighting
+ls_lev <- lm(s_lev$subsample[,1] ~ s_lev$subsample[,2] - 1, weights = s_lev$prob)
 
 }
 \references{
