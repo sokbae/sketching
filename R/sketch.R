@@ -45,10 +45,12 @@
 #' @export
 sketch = function(data, m, method = "unif"){
   
-  data <- as.matrix(data)
   n <- nrow(data)
   d <- ncol(data)
-  
+  shuffle <- sample.int(n, n, replace = TRUE)  # random permutation
+  data <- data[shuffle,]
+  data <- as.matrix(data)
+
   if (m >= n){
         stop("Error: m needs to be strictly smaller than n.")
   }
@@ -57,15 +59,15 @@ sketch = function(data, m, method = "unif"){
     
     if (method == "unif"){ 
     
-    index <- sample.int(n, m, replace = FALSE)
-    subsample <- data[index,]
+    index <- sample.int(n, m, replace = TRUE)
+    subsample <- sqrt(n/m)*data[index,]
     prob <- NA
     }
     
-    if (method == "unif_with_replacement"){ 
+    if (method == "unif_without_replacement"){ 
       
-      index <- sample.int(n, m, replace = TRUE)
-      subsample <- data[index,]
+      index <- sample.int(n, m, replace = FALSE)
+      subsample <- sqrt(n/m)*data[index,]
       prob <- NA
     }
     
@@ -73,10 +75,33 @@ sketch = function(data, m, method = "unif"){
       
       Xmatrix <- data[,-1]
       svdX <- svd(Xmatrix)
-      lev <- apply(svdX$u^2, 1, sum)/ncol(Xmatrix)
-      index <- sample.int(n, m, replace = TRUE, prob = lev)
-      subsample <- data[index,]
-      prob <- lev[index]
+      lev <- apply(svdX$u^2, 1, sum)
+      lev_pi <- lev/sum(lev)
+      index <- sample.int(n, m, replace = TRUE, prob = lev_pi)
+      subsample <- sqrt(n/m)*data[index,]
+      prob <- lev_pi[index]
+    }
+    
+    if (method == "root_leverage"){ 
+      
+      Xmatrix <- data[,-1]
+      svdX <- svd(Xmatrix)
+      lev <- apply(svdX$u^2, 1, sum)
+      rlev <- sqrt(lev)
+      rlev_pi <- rlev/sum(rlev)
+      index <- sample.int(n, m, replace = TRUE, prob = rlev_pi)
+      subsample <- sqrt(n/m)*data[index,]
+      prob <- rlev_pi[index]
+    }
+    
+    if (method == "leverage_YX"){ 
+      
+      svdYX <- svd(data)
+      lev <- apply(svdYX$u^2, 1, sum)/ncol(data)
+      lev_pi <- lev/sum(lev)
+      index <- sample.int(n, m, replace = TRUE, prob = lev_pi)
+      subsample <- sqrt(n/m)*data[index,]
+      prob <- lev_pi[index]
     }
     
     if (method == "CountSketch"){ 
@@ -90,20 +115,36 @@ sketch = function(data, m, method = "unif"){
     if (method == "fft"){
       
       data[1:floor(n/2),] <- -data[1:floor(n/2),]  # sign flip
-      shuffle <- sample.int(n, n, replace = TRUE)  # random permutation
-      data <- data[shuffle,]
       # Fast Discrete Fourier Transform (FFT)
       data_fft <- {}
       for (j in 1:d){
         # apply FFT to each column and take only the real part
         data_fft <- cbind(data_fft, Re(stats::fft(data[,j])))
       }
-      # random sampling without replacement
-      index <- sample.int(nrow(data_fft), m, replace = FALSE)
-      subsample <- data_fft[index,]
+      # random sampling with replacement
+      index <- sample.int(nrow(data_fft), m, replace = TRUE)
+      subsample <- sqrt(n/m)*data_fft[index,]
       prob <- NA
     }
- 
+    
+    if (method == "srht"){
+      
+      data[1:floor(n/2),] <- -data[1:floor(n/2),]  # sign flip
+      # SRHT
+      data_srht <- {}
+      for (j in 1:d){
+        # zero padding
+        n_new <- 2^ceiling(log2(n))
+        data_j <- c(data[,j],rep(0,n_new-n))
+        # multiply Hadamard matrix to each column
+        data_srht <- cbind(data_srht, phangorn::fhm(data_j))
+      }
+      # random sampling with replacement
+      index <- sample.int(nrow(data_srht), m, replace = TRUE)
+      subsample <- sqrt(n/m)*data_srht[index,]
+      prob <- NA
+    }
+    
   outputs <- list("subsample"=subsample, "prob"=prob)
   
   outputs

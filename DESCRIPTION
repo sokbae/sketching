@@ -15,7 +15,9 @@ LazyData: true
 RoxygenNote: 7.1.2
 Imports: 
     stats,
-    Rcpp (>= 1.0.7)
+    Rcpp (>= 1.0.7),
+    ape (>= 5.5),
+    phangorn (>= 2.8.1)
 LinkingTo: Rcpp
 Suggests: 
     knitr,
@@ -23,7 +25,7 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Depends: 
-    R (>= 2.10)
+    R (>= 4.1.0)
 URL: https://github.com/sokbae/sketching/
 BugReports: https://github.com/sokbae/sketching/issues
 Config/testthat/edition: 3
