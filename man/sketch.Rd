@@ -7,24 +7,23 @@
 sketch(data, m, method = "unif")
 }
 \arguments{
-\item{data}{(n times d)-dimensional matrix of data. 
-The first column needs to be a vector of the dependent variable (Y) for leverage score sampling.}
+\item{data}{(n times d)-dimensional matrix of data.}
 
-\item{m}{subsample size that is less than n}
+\item{m}{(expected) subsample size that is less than n}
 
 \item{method}{method for sketching:
-"unif" uniform sampling without replacement (default);
-"unif_with_replacement" uniform sampling with replacement;
-"leverage" leverage score sampling;
-"CountSketch" CountSketch;
+"unif" uniform sampling with replacement (default);
+"unif_without_replacement" uniform sampling without replacement;
+"bernoulli" Bernoulli sampling;
+"gaussian" Gaussian projection;
+"countsketch" CountSketch;
+"srht" subsampled randomized Hadamard transform;
 "fft" subsampled randomized trigonometric transforms using the real part of 
 fast discrete Fourier transform (stats::ftt).}
 }
 \value{
-An S3 object has the following elements.
-\item{subsample}{(m times d)-dimensional matrix of data}
-\item{prob}{m-dimensional vector of probabilities. 
-This output is generated only when "leverage" is selected.}
+(m times d)-dimensional matrix of data
+For Bernoulli sampling, the number of rows is not necessarily m.
 }
 \description{
 Provides a subsample of data using sketches
@@ -44,16 +43,12 @@ intercept <- matrix(rep(1,n), nrow = n, ncol = 1)
 # full sample including the intercept term
 fullsample <- cbind(Y,intercept,X)
 # generate a sketch using CountSketch
-s_cs <-  sketch(fullsample, m, "CountSketch")
+s_cs <-  sketch(fullsample, m, "countsketch")
 # solve without the intercept
-ls_cs <- lm(s_cs$subsample[,1] ~ s_cs$subsample[,2] - 1)
-# generate a sketch using leverage score sampling
-s_lev <-  sketch(fullsample, m, "leverage")
-# solve without the intercept with weighting
-ls_lev <- lm(s_lev$subsample[,1] ~ s_lev$subsample[,2] - 1, weights = s_lev$prob)
+ls_cs <- lm(s_cs[,1] ~ s_cs[,2] - 1)
+# generate a sketch using SRHT
+s_srht <-  sketch(fullsample, m, "srht")
+# solve without the intercept
+ls_srht <- lm(s_srht[,1] ~ s_srht[,2] - 1)
 
-}
-\references{
-Sokbae Lee, S and Ng, S. (2020). An Econometric Perspective on Algorithmic Subsampling.
-Annual Review of Economics, 12:1, 45-80.
 }

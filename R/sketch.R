@@ -3,19 +3,18 @@
 #' @description Provides a subsample of data using sketches
 #'
 #' @param data (n times d)-dimensional matrix of data. 
-#' The first column needs to be a vector of the dependent variable (Y) for leverage score sampling.
-#' @param m subsample size that is less than n 
+#' @param m (expected) subsample size that is less than n 
 #' @param method method for sketching:
-#' "unif" uniform sampling without replacement (default);
-#' "unif_with_replacement" uniform sampling with replacement;
-#' "leverage" leverage score sampling;
-#' "CountSketch" CountSketch;
+#' "unif" uniform sampling with replacement (default);
+#' "unif_without_replacement" uniform sampling without replacement;
+#' "bernoulli" Bernoulli sampling;
+#' "gaussian" Gaussian projection;
+#' "countsketch" CountSketch;
+#' "srht" subsampled randomized Hadamard transform;
 #' "fft" subsampled randomized trigonometric transforms using the real part of 
 #' fast discrete Fourier transform (stats::ftt).
-#' @return An S3 object has the following elements.
-#' \item{subsample}{(m times d)-dimensional matrix of data}
-#' \item{prob}{m-dimensional vector of probabilities. 
-#' This output is generated only when "leverage" is selected.}   
+#' @return (m times d)-dimensional matrix of data
+#' For Bernoulli sampling, the number of rows is not necessarily m.    
 #' @examples
 #' ## Least squares: sketch and solve
 #' # setup
@@ -31,17 +30,14 @@
 #' # full sample including the intercept term
 #' fullsample <- cbind(Y,intercept,X)
 #' # generate a sketch using CountSketch
-#' s_cs <-  sketch(fullsample, m, "CountSketch")
+#' s_cs <-  sketch(fullsample, m, "countsketch")
 #' # solve without the intercept
-#' ls_cs <- lm(s_cs$subsample[,1] ~ s_cs$subsample[,2] - 1)
-#' # generate a sketch using leverage score sampling
-#' s_lev <-  sketch(fullsample, m, "leverage")
-#' # solve without the intercept with weighting
-#' ls_lev <- lm(s_lev$subsample[,1] ~ s_lev$subsample[,2] - 1, weights = s_lev$prob)
+#' ls_cs <- lm(s_cs[,1] ~ s_cs[,2] - 1)
+#' # generate a sketch using SRHT
+#' s_srht <-  sketch(fullsample, m, "srht")
+#' # solve without the intercept
+#' ls_srht <- lm(s_srht[,1] ~ s_srht[,2] - 1)
 #' 
-#' @references Sokbae Lee, S and Ng, S. (2020). An Econometric Perspective on Algorithmic Subsampling.
-#' Annual Review of Economics, 12:1, 45-80.
-#'
 #' @export
 sketch = function(data, m, method = "unif"){
   
@@ -61,70 +57,32 @@ sketch = function(data, m, method = "unif"){
     
     index <- sample.int(n, m, replace = TRUE)
     subsample <- sqrt(n/m)*data[index,]
-    prob <- NA
     }
     
     if (method == "unif_without_replacement"){ 
       
       index <- sample.int(n, m, replace = FALSE)
       subsample <- sqrt(n/m)*data[index,]
-      prob <- NA
     }
     
-    if (method == "leverage"){ 
+    if (method == "bernoulli"){ 
       
-      Xmatrix <- data[,-1]
-      svdX <- svd(Xmatrix)
-      lev <- apply(svdX$u^2, 1, sum)
-      lev_pi <- lev/sum(lev)
-      index <- sample.int(n, m, replace = TRUE, prob = lev_pi)
+      index <- 1:n
+      index <- index[stats::runif(n) < m/n]
       subsample <- sqrt(n/m)*data[index,]
-      prob <- lev_pi[index]
     }
     
-    if (method == "root_leverage"){ 
+    if (method == "gaussian"){ 
       
-      Xmatrix <- data[,-1]
-      svdX <- svd(Xmatrix)
-      lev <- apply(svdX$u^2, 1, sum)
-      rlev <- sqrt(lev)
-      rlev_pi <- rlev/sum(rlev)
-      index <- sample.int(n, m, replace = TRUE, prob = rlev_pi)
-      subsample <- sqrt(n/m)*data[index,]
-      prob <- rlev_pi[index]
+    Pi_matrix <- matrix(stats::rnorm(n*m), nrow = m, ncol = n)
+    subsample <- (1/sqrt(m)) * (Pi_matrix %*% data)
     }
     
-    if (method == "leverage_YX"){ 
-      
-      svdYX <- svd(data)
-      lev <- apply(svdYX$u^2, 1, sum)/ncol(data)
-      lev_pi <- lev/sum(lev)
-      index <- sample.int(n, m, replace = TRUE, prob = lev_pi)
-      subsample <- sqrt(n/m)*data[index,]
-      prob <- lev_pi[index]
-    }
-    
-    if (method == "CountSketch"){ 
+    if (method == "countsketch"){ 
 
       hv = sample.int(m, n, replace=TRUE)        
       gv = (stats::runif(n) < 0.5) * 2 - 1
       subsample <- rcpp_count_sketch(data, hv, gv, m)
-      prob <- NA
-    }
-    
-    if (method == "fft"){
-      
-      data[1:floor(n/2),] <- -data[1:floor(n/2),]  # sign flip
-      # Fast Discrete Fourier Transform (FFT)
-      data_fft <- {}
-      for (j in 1:d){
-        # apply FFT to each column and take only the real part
-        data_fft <- cbind(data_fft, Re(stats::fft(data[,j])))
-      }
-      # random sampling with replacement
-      index <- sample.int(nrow(data_fft), m, replace = TRUE)
-      subsample <- sqrt(n/m)*data_fft[index,]
-      prob <- NA
     }
     
     if (method == "srht"){
@@ -138,16 +96,29 @@ sketch = function(data, m, method = "unif"){
         data_j <- c(data[,j],rep(0,n_new-n))
         # multiply Hadamard matrix to each column
         data_srht <- cbind(data_srht, phangorn::fhm(data_j))
+        data_srht <- data_srht/sqrt(n)
       }
       # random sampling with replacement
       index <- sample.int(nrow(data_srht), m, replace = TRUE)
       subsample <- sqrt(n/m)*data_srht[index,]
-      prob <- NA
     }
     
-  outputs <- list("subsample"=subsample, "prob"=prob)
-  
-  outputs
+    if (method == "fft"){
+      
+      data[1:floor(n/2),] <- -data[1:floor(n/2),]  # sign flip
+      # Fast Discrete Fourier Transform (FFT)
+      data_fft <- {}
+      for (j in 1:d){
+        # apply FFT to each column and take only the real part
+        data_fft <- cbind(data_fft, Re(stats::fft(data[,j])))
+        data_fft <- data_fft/sqrt(n)
+      }
+      # random sampling with replacement
+      index <- sample.int(nrow(data_fft), m, replace = TRUE)
+      subsample <- sqrt(n/m)*data_fft[index,]
+    }
+    
+  subsample
   }
   
 }

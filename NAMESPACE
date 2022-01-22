@@ -4,3 +4,4 @@ exportPattern("ˆ[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
 # Command
 export(sketch)
+export(sketch_leverage)
