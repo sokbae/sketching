@@ -96,8 +96,8 @@ sketch = function(data, m, method = "unif"){
         data_j <- c(data[,j],rep(0,n_new-n))
         # multiply Hadamard matrix to each column
         data_srht <- cbind(data_srht, phangorn::fhm(data_j))
-        data_srht <- data_srht/sqrt(n)
       }
+      data_srht <- data_srht/sqrt(n)
       # random sampling with replacement
       index <- sample.int(nrow(data_srht), m, replace = TRUE)
       subsample <- sqrt(n/m)*data_srht[index,]
@@ -111,8 +111,8 @@ sketch = function(data, m, method = "unif"){
       for (j in 1:d){
         # apply FFT to each column and take only the real part
         data_fft <- cbind(data_fft, Re(stats::fft(data[,j])))
-        data_fft <- data_fft/sqrt(n)
       }
+      data_fft <- data_fft/sqrt(n)
       # random sampling with replacement
       index <- sample.int(nrow(data_fft), m, replace = TRUE)
       subsample <- sqrt(n/m)*data_fft[index,]
