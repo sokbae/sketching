@@ -2,13 +2,10 @@ Package: sketching
 Type: Package
 Title: Sketching of Data via Random Embeddings
 Version: 0.1.0
-Authors@R: c(
-    person("Sokbae", "Lee", email = "sl3841@columbia.edu", role = c("aut", "cre")),
-    person("Serena", "Ng", email = "sn2294@columbia.edu", role = "aut"))
+Authors@R: 
+  person("Anonymous", "Author", email = "anon.email@domain.com", role = c("aut", "cre"))
 Description: Construct sketches of data via random embeddings. 
-    For more details, see the paper by Lee and Ng (2020), 
-    "An Econometric Perspective on Algorithmic Subsampling," 
-    Annual Review of Economics, 12:45–80.
+  This package is for replicating numerical results reported in the submitted paper.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
