@@ -29,7 +29,7 @@ For more details, see the following papers.
 
 You can install the development version from [GitHub](https://github.com/) with:
 
-```{r}
+``` r
 # install.packages("devtools") if devtools is not installed
 # devtools::install_github("https://github.com/sokbae/sketching")
 ```
