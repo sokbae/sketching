@@ -25,9 +25,9 @@ You can install the development version from
 
 ``` r
 # install.packages("devtools") if devtools is not installed
-# devtools::install_github("https://github.com/sokbae/sketching")
+devtools::install_github("https://github.com/sokbae/sketching")
 ```
 
 ## Numerical Illustration
 
-See the vignette for numerical examples.
+See the vignette for numerical examples for OLS and 2SLS.
