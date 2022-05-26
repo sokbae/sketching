@@ -14,8 +14,7 @@ The first column needs to be a vector of the dependent variable (Y)}
 
 \item{method}{method for sketching:
 "leverage" leverage score sampling using X (default);
-"root_leverage" square-root leverage score sampling using X;
-"leverage_YX" leverage score sampling using both Y and X.}
+"root_leverage" square-root leverage score sampling using X.}
 }
 \value{
 An S3 object has the following elements.
@@ -43,5 +42,7 @@ fullsample <- cbind(Y,intercept,X)
 s_lev <-  sketch_leverage(fullsample, m, "leverage")
 # solve without the intercept with weighting
 ls_lev <- lm(s_lev$subsample[,1] ~ s_lev$subsample[,2] - 1, weights = s_lev$prob)
-
+}
+\references{
+Ma, P., Zhang, X., Xing, X., Ma, J. and Mahoney, M.. (2020). Asymptotic Analysis of Sampling Estimators for Randomized Numerical Linear Algebra Algorithms. Proceedings of the Twenty Third International Conference on Artificial Intelligence and Statistics, PMLR 108:1026-1035.
 }

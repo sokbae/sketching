@@ -7,8 +7,7 @@
 #' @param m subsample size that is less than n 
 #' @param method method for sketching:
 #' "leverage" leverage score sampling using X (default);
-#' "root_leverage" square-root leverage score sampling using X;
-#' "leverage_YX" leverage score sampling using both Y and X.
+#' "root_leverage" square-root leverage score sampling using X.
 #' @return An S3 object has the following elements.
 #' \item{subsample}{(m times d)-dimensional matrix of data}
 #' \item{prob}{m-dimensional vector of probabilities}
@@ -30,6 +29,7 @@
 #' s_lev <-  sketch_leverage(fullsample, m, "leverage")
 #' # solve without the intercept with weighting
 #' ls_lev <- lm(s_lev$subsample[,1] ~ s_lev$subsample[,2] - 1, weights = s_lev$prob)
+#' @references Ma, P., Zhang, X., Xing, X., Ma, J. and Mahoney, M.. (2020). Asymptotic Analysis of Sampling Estimators for Randomized Numerical Linear Algebra Algorithms. Proceedings of the Twenty Third International Conference on Artificial Intelligence and Statistics, PMLR 108:1026-1035.
 #'
 #' @export
 sketch_leverage = function(data, m, method = "leverage"){
@@ -67,16 +67,6 @@ sketch_leverage = function(data, m, method = "leverage"){
       index <- sample.int(n, m, replace = TRUE, prob = rlev_pi)
       subsample <- sqrt(n/m)*data[index,]
       prob <- rlev_pi[index]
-    }
-    
-    if (method == "leverage_YX"){ 
-      
-      svdYX <- svd(data)
-      lev <- apply(svdYX$u^2, 1, sum)/ncol(data)
-      lev_pi <- lev/sum(lev)
-      index <- sample.int(n, m, replace = TRUE, prob = lev_pi)
-      subsample <- sqrt(n/m)*data[index,]
-      prob <- lev_pi[index]
     }
 
   outputs <- list("subsample"=subsample, "prob"=prob)
