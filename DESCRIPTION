@@ -16,17 +16,16 @@ RoxygenNote: 7.1.2
 Imports: 
     stats,
     MASS (>= 7.3),
-    lmtest (>= 0.9),
-    ivreg (>= 0.6),
-    sandwich (>= 3.0),
     Rcpp (>= 1.0.7),
-    ape (>= 5.5),
     phangorn (>= 2.8.1)
 LinkingTo: Rcpp
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    lmtest (>= 0.9),
+    ivreg (>= 0.6),
+    sandwich (>= 3.0)
 VignetteBuilder: knitr
 Depends: 
     R (>= 4.1.0)
