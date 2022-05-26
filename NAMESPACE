@@ -5,3 +5,4 @@ importFrom(Rcpp, evalCpp)
 # Command
 export(sketch)
 export(sketch_leverage)
+export(simulation_dgp)

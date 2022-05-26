@@ -1,0 +1,372 @@
+---
+title: "sketching: An R Vignette"
+author: "Sokbae Lee and Serena Ng"
+abstract: The package "sketching" is an R package that provides a variety of random sketching methods.    
+output: rmarkdown::html_document
+bibliography: refs.bib 
+vignette: >
+  %\VignetteIndexEntry{sketching: An R Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+We introduce __sketching__, which is an R package that provides a variety of sketching methods. Researchers may perform regressions using a sketch of data of size $m$ instead of the full sample of size $n$ for a variety of reasons. @LN:2022 considers the case when the regression errors do not have constant variance and heteroskedasticity robust standard errors would normally be needed for test statistics to provide  accurate inference. It is shown in @LN:2022 that estimates using data sketched by random projections will behave _as if_ the errors were homoskedastic. Estimation by random sampling would not have this property. 
+Before demonstrating the R package, we first provide theoretical backgrounds. 
+
+## Least Squares Estimation with Heteroskedastic Errors
+
+Given $n$ observations $\{ (y_i, X_i,Z_i): i=1,\ldots,n \}$, we consider  a linear regression model:
+\begin{align*}
+y_i = X_i^T \beta_0 + e_i, \; 
+\end{align*}
+where $y_i$ is the scalar dependent variable,
+$X_i$ is a $p \times 1$ vector of regressors,   $\beta_0$ is a $p \times 1$ vector of unknown parameters. The innovation $e_i$ is said to be (conditionally)  homoskedastic if $E[e_i^2|X_i]=E[e_i^2]$.
+Otherwise, $e_i$ is said to be heteroskedastic. In matrix form, the model given above can be written as
+\begin{align*}
+y = X \beta_0 + e, 
+\end{align*} 
+where $y$ and $e$ are  $n \times 1$ vectors whose $i$-th rows are $y_i$ and $e_i$, respectively,
+and 
+$X$ is the $n \times p$ matrix of regressors whose $i$-th row is $X_i^T$. 
+
+We focus on the exogenous regressor case  when $\mathbb E(e_iX_i)=0$. The least squares estimator $\hat\beta_{OLS}:=(X^TX)^{-1} X^T y$ is $\sqrt{n}$ consistent and asymptotically normal, i.e.,
+$$
+\sqrt{n}(\hat\beta_{OLS}-\beta_0)\rightarrow_d N(0,V_1)
+$$ 
+as $n\rightarrow\infty$, where \[V_1 :=   [\mathbb E(X_iX_i^T) ]^{-1} \mathbb E(e_i^2X_iX_i^T) [\mathbb E(X_iX_i^T)]^{-1}\]
+ is the  heteroskedasticity-robust  asymptotic variance matrix. Under homoskedasticity,  $V_1$ becomes 
+\[  V_0:= \mathbb E(e_i^2) [\mathbb E(X_iX_i^T)]^{-1}.\]
+
+Consider testing $H_0:\beta_2= \bar\beta_2$, where the subscript 2 refers to an element of $\beta$.
+The point estimates $\hat\beta$ can be used to test the null hypothesis  employing the $t$ test   
+$$
+\frac{\sqrt{n}(\hat\beta_2-\bar \beta_2)}{\sqrt{[\hat V]_{22}}},
+$$ 
+where $\hat V$ is an estimate of either $V_1$ or $V_0$. The distribution of this test under the null hypothesis crucially  depends on the correct standard error $\sqrt{[\hat V]_{22}/n}$ being used.   Using $\hat V_0$ when the robust estimator $\hat V_1$ should have been used would lead to inaccurate inference, in the sense of rejecting the null hypothesis too often or not enough.
+
+## Sketched Least Squares Estimation
+
+A sketch of the data $(y, X)$ is  $(\tilde{y}, \tilde{X})$, where
+$\tilde{{y}} = \Pi {y}$, $\tilde{{X}} = \Pi {X}$,  and 
+ $\Pi$ is usually an  $m \times n$  random matrix.
+The sketched least squares estimator is $\tilde\beta_{OLS}:=(\tilde X^T\tilde X)^{-1}\tilde X^T \tilde y$. 
+Even though the sketched regression is based on a sample of size $m$,  $\tilde X^T \tilde X$ and $\tilde X^T \tilde y$  can be written as weighted moments in a sample   of size $n$ as
+$\tilde X^T\tilde X = X^T \Pi^T \Pi X$ and $\tilde X^T \tilde y = X^T \Pi^T \Pi y$.
+
+Note that for a general random  $\Pi$ whose $(k,i)$ element
+ is  $\Pi_{ki}$,   the difference between the  full and the sketched moments  is of the form
+\begin{align*}
+%\label{u-stat-form-general}
+\begin{split}
+&n^{-1} \left( U^T \Pi^T \Pi V - U^T V \right) \\
+%&=   n^{-1} \sum_{i=1}^n  \sum_{j=1}^n \sum_{k=1}^{m} U_i   \Pi_{ki} \Pi_{kj} V_j  
+%- n^{-1} \sum_{i=1}^n     U_i    V_i \\
+&= n^{-1} \sum_{i=1}^n    \psi_i  U_i    V_i
++ n^{-1} \sum_{i=1}^n  \sum_{j=1, j \neq i}^n  U_i   \varphi_{ij} V_j \\
+&=: T_{n1} + T_{n2},
+\end{split}
+\end{align*}
+where
+$U \in \mathbb{R}^n$ and $V \in \mathbb{R}^n$ are  vectors of certain
+i.i.d. random variables $(U_i, V_i) \in \mathbb{R}^2$ that are independent of $\Pi$,
+\begin{align*}
+\psi_i := \sum_{k=1}^{\textrm{r.dim}(\Pi)} \Pi_{ki}^2  - 1,
+\; 
+\varphi_{ij} := \sum_{k=1}^{\textrm{r.dim}(\Pi)} \Pi_{ki}  \Pi_{kj},
+\end{align*}
+and $\textrm{r.dim}(\Pi)  \in \{m,  n\}$ denotes the row dimension of $\Pi$.
+
+There are two classes of sketching schemes to consider. Random sampling schemes have  $\varphi_{ij} = 0$ for all $i \neq j$ because  there is only one non-zero entry in  each row of $\Pi$. In such cases, $T_{2n}$ is negligible and $T_{1n}$ is the leading term.  The second class is  random projection schemes with which $T_{1n}$ is asymptotically negligible and $T_{2n}$ is the leading term. 
+
+As examples,  we consider Bernoulli sampling (BS) from the first type and countsketch (CS) from the second type.
+Under BS, the sampling probability is determined by i.i.d. Bernoulli random variables with 
+success probability $m/n$. Thus, $\Pi = \sqrt{\frac{n}{m}} B$ is an $n\times n$ matrix (not $m\times n$), where $B$ is a diagonal sampling matrix.
+Under CS, each column of $\Pi$ has only one non-zero entry taking on value
+ $\{ +1, -1\}$ randomly drawn with equal probability and  located  uniformly at random.
+
+We now state formal results from @LN:2022, which makes the following assumptions.
+
+1. The data $\mathcal{D}_n := \{(y_i, X_i) \in \mathbb{R}^{1+p}: i=1,\ldots,n \}$ are independent and identically distributed (i.i.d.).  
+
+2. $\mathbb E(e_iX_i)=0$, $\mathbb{E}(y_i^4)<\infty$, $\mathbb{E}(\| X_i \|^4)<\infty$, and $\mathbb{E} ( X_i X_i^T )$   has full rank $p$.
+
+3. The random matrix $\Pi$ is independent of $\mathcal{D}_n$. 
+
+4. $m = m_n \rightarrow \infty$ but $m/n \rightarrow 0$ as $n \rightarrow \infty$, while $p$ is fixed.
+
+Then, 
+
+1. Under BS, $m^{1/2} ( \tilde{\beta}_{OLS} - \hat{\beta}_{OLS} \,)  \rightarrow_d N (0, V_1 )$.
+
+2. Under CS, $m^{1/2} ( \tilde{\beta}_{OLS} - \hat{\beta}_{OLS} \,)  \rightarrow_d N (0, V_0 )$.
+
+
+Though this theoretical result indicates that both sampling schemes yield  asymptotically normal estimates, their asymptotic variances are different, and asymptotic normality holds  for different reasons. 
+
+## Numerical Illustration
+
+We begin by calling the sketching package and fix the seed for reproducibility.
+
+```{r setup}
+library(sketching)
+seed <- 220526  
+set.seed(seed)  
+```
+
+### Estimating the Return to Education
+
+To illustrate the usefulness of the package, we use the well-known @AK1991 dataset. A particular extract of their dataset is included in the package. Specifically, we look at the ordinary least squares (OLS) and two stage least squares (2SLS) estimates of the return to education in columns (1) and (2) of Table IV in their paper. The dependent variable $y$ is the log weekly wages, the covariates $X$ include years of education, the intercept term and  9 year-of-birth dummies $(p=11)$. 
+Following @AK1991, the instruments $Z$ are a full set of quarter-of-birth times year-of-birth interactions $(q=30)$. Their idea was that season of birth is unlikely to be correlated with workers' ability but can affect educational attainment because of compulsory schooling laws.
+The full sample size is $n = 247,199$.
+
+We now define the variables accordingly.
+
+```{r}
+Y <- AK$LWKLYWGE
+intercept <- AK$CNST
+X_end <- AK$EDUC
+X_exg <- AK[,3:11]
+X <- cbind(X_exg, X_end)
+Z_inst <- AK[,12:(ncol(AK)-1)]
+Z <- cbind(X_exg, Z_inst)
+fullsample <- cbind(Y,intercept,X)
+n <- nrow(fullsample)
+d <- ncol(X)
+```
+
+### How to Choose $m$
+
+We start with how to choose $m$ in this application.
+@LN:2020 highlights the tension between  a large $m$  required for accurate inference, and a small $m$ for computation  efficiency. 
+From the algorithmic perspective, $m$ needs to be chosen as small as possible to achieve computational efficiency. For example, we may set 
+\begin{align*}%\label{smallest-m}
+m_1 = C_m p \log p \; \text{ or } \; m_1 = C_m p^2, 
+\end{align*}
+where $C_m$ is a constant that needs to be chosen by a researcher. 
+However, statistical analysis often cares about the variability of the estimates in repeated sampling and  a larger $m$ may be  desirable from the perspective  of statistical efficiency.   An _inference-conscious_ guide $m_2$ can be obtained as in @LN:2020 by targeting the power at $\bar\gamma$ of a one-sided $t$-test for given nominal size $\bar\alpha$. For pre-specified effect size $c^T(\beta^0-\beta_0)$, 
+$$
+  m_2(m_1)=m_1 S^2(\bar\alpha,\bar\gamma)\left[\frac{\text{se}(c^T \tilde\beta_{OLS})} {c^T(\beta^0-\beta_0)]}\right]^2,
+$$
+where $S(\alpha,\gamma):=\Phi^{-1}(\gamma) +\Phi^{-1}(1-\alpha)$.
+
+Alternatively, 
+a data-oblivious  sketch size for a pre-specified  $\tau_2(\infty)$ is defined as
+\begin{equation*}
+  m_3=n\frac{S^2(\bar\alpha,\bar\gamma)}{\tau_2^2(\infty)}.
+\end{equation*}
+Note that $m_3$  only requires the choice of $\bar \alpha, \bar\gamma,$ and $\tau_2(\infty)$ which, unlike $m_2$, can be computed without a preliminary sketch.
+The condition $m / n \rightarrow 0$ can be viewed as $\tau_2 (\infty) \rightarrow \infty$ as $n \rightarrow \infty$.
+
+We focus on the data-oblivious sketch size $m_3$, as it is simpler to use.
+We set the target size $\alpha= 0.05$ and the target power $\gamma = 0.8$. Then,
+$S^2(\bar\alpha,\bar\gamma) = 6.18$. It remains to specify $\tau_2(\infty)$, which can be interpreted as
+the value of $t$-statistic when the sample size is really large. 
+
+### OLS Estimation Results
+
+For OLS, we take $\tau_2(\infty) = 10$, resulting in 
+$m = 15,283$ (about 6\% of $n$).
+
+```{r}
+# choice of m (data-oblivious sketch size)
+target_size <- 0.05
+target_power <- 0.8
+S_constant <- (stats::qnorm(1-target_size) + stats::qnorm(target_power))^2
+tau_limit <- 10
+m_ols <- floor(n*S_constant/tau_limit^2) 
+print(m_ols)
+```
+
+As a benchmark, we first obtain the OLS estimate using the full sample. 
+
+```{r}
+ys <- fullsample[,1]
+reg <- as.matrix(fullsample[,-1])
+fullmodel <- lm(ys ~ reg - 1)
+# use homoskedasticity-only asymptotic variance
+ztest <- lmtest::coeftest(fullmodel, df = Inf)
+est <- ztest[(d+1),1] 
+se <- ztest[(d+1),2]
+print(c(est,se))
+# use heteroskedasticity-robust asymptotic variance
+ztest_hc <- lmtest::coeftest(fullmodel, df = Inf, 
+            vcov = sandwich::vcovHC, type = "HC0")
+est_hc <- ztest_hc[(d+1),1] 
+se_hc <- ztest_hc[(d+1),2]
+print(c(est_hc,se_hc))
+```
+
+We now obtain the OLS estimates using a Bernoulli subsampling. 
+
+```{r}
+subsample <- sketch(fullsample, m_ols, method = "bernoulli")
+ys <- subsample[,1]
+reg <- subsample[,-1]
+submodel <- lm(ys ~ reg - 1) 
+# use homoskedasticity-only asymptotic variance
+ztest <- lmtest::coeftest(submodel, df = Inf)
+est <- ztest[(d+1),1] 
+se <- ztest[(d+1),2]
+print(c(est,se))
+# use heteroskedasticity-robust asymptotic variance
+ztest_hc <- lmtest::coeftest(submodel, df = Inf, 
+            vcov = sandwich::vcovHC, type = "HC0")
+est_hc <- ztest_hc[(d+1),1] 
+se_hc <- ztest_hc[(d+1),2]
+print(c(est_hc,se_hc))
+```
+
+As another example of random sampling, we now consider uniform sampling.
+
+```{r}
+subsample <- sketch(fullsample, m_ols, method = "unif")
+ys <- subsample[,1]
+reg <- subsample[,-1]
+submodel <- lm(ys ~ reg - 1) 
+# use homoskedasticity-only asymptotic variance
+ztest <- lmtest::coeftest(submodel, df = Inf)
+est <- ztest[(d+1),1] 
+se <- ztest[(d+1),2]
+print(c(est,se))
+# use heteroskedasticity-robust asymptotic variance
+ztest_hc <- lmtest::coeftest(submodel, df = Inf, 
+            vcov = sandwich::vcovHC, type = "HC0")
+est_hc <- ztest_hc[(d+1),1] 
+se_hc <- ztest_hc[(d+1),2]
+print(c(est_hc,se_hc))
+```
+
+We now move to random projection schemes. First, we consider countsketch.
+
+```{r}
+subsample <- sketch(fullsample, m_ols, method = "countsketch")
+ys <- subsample[,1]
+reg <- subsample[,-1]
+submodel <- lm(ys ~ reg - 1) 
+# use homoskedasticity-only asymptotic variance
+ztest <- lmtest::coeftest(submodel, df = Inf)
+est <- ztest[(d+1),1] 
+se <- ztest[(d+1),2]
+print(c(est,se))
+# use heteroskedasticity-robust asymptotic variance
+ztest_hc <- lmtest::coeftest(submodel, df = Inf, 
+            vcov = sandwich::vcovHC, type = "HC0")
+est_hc <- ztest_hc[(d+1),1] 
+se_hc <- ztest_hc[(d+1),2]
+print(c(est_hc,se_hc))
+```
+
+Next, we consider Subsampled Randomized Hadamard Transform (SRHT). That is, 
+$\Pi = \sqrt{\frac{n}{m} } S H D$,
+$S \in \mathbb{R}^{m \times n}$ is a uniform sampling matrix with replacement,
+$H  \in \mathbb{R}^{n \times n}$ is a normalized Walsh-Hadamard transform matrix,
+and $D  \in \mathbb{R}^{n \times n}$ is a  diagonal Rademacher matrix with i.i.d. entries of $\pm 1$.
+
+```{r}
+subsample <- sketch(fullsample, m_ols, method = "srht")
+ys <- subsample[,1]
+reg <- subsample[,-1]
+submodel <- lm(ys ~ reg - 1) 
+# use homoskedasticity-only asymptotic variance
+ztest <- lmtest::coeftest(submodel, df = Inf)
+est <- ztest[(d+1),1] 
+se <- ztest[(d+1),2]
+print(c(est,se))
+# use heteroskedasticity-robust asymptotic variance
+ztest_hc <- lmtest::coeftest(submodel, df = Inf, 
+            vcov = sandwich::vcovHC, type = "HC0")
+est_hc <- ztest_hc[(d+1),1] 
+se_hc <- ztest_hc[(d+1),2]
+print(c(est_hc,se_hc))
+```
+
+For each sketching scheme, only one random sketch is drawn; hence, the results can change if we redraw sketches. Note that the intercept term is included in the full sample data before applying sketching methods. This is important for random sketching schemes as the observations across different rows are randomly combined.
+
+Remarkably, all sketched estimates are 0.08, reproducing the full sample estimate up to the second digit.
+The sketched homoskedasticity-only standard errors are also very much the same across different methods.
+The Eicker-Huber-White standard error (i.e., heteroskedasticity-robust standard error) is a bit larger than the homoskedastic standard error with the full sample. As expected, the same pattern is observed for Bernoulli and uniform sampling, as these sampling schemes preserve conditional heteroskedasticity.
+
+### 2SLS Estimation Results
+
+We now move to 2SLS estimation. For 2SLS, as it is more demanding to achieve good precision, we take $\tau_2(\infty) = 5$, resulting in $m = 61,132$ (about 25\% of $n$).
+
+```{r}
+fullsample <- cbind(Y,intercept,X,intercept,Z)
+n <- nrow(fullsample)
+p <- ncol(X)
+q <- ncol(Z)
+# choice of m (data-oblivious sketch size)
+target_size <- 0.05
+target_power <- 0.8
+S_constant <- (qnorm(1-target_size) + qnorm(target_power))^2
+tau_limit <- 5
+m_2sls <- floor(n*S_constant/tau_limit^2) 
+print(m_2sls)
+```
+
+As before, we first obtain the 2OLS estimate using the full sample. 
+
+```{r}
+ys <- fullsample[,1]
+reg <- as.matrix(fullsample[,2:(p+2)])
+inst <- as.matrix(fullsample[,(p+3):ncol(fullsample)]) 
+fullmodel <- ivreg::ivreg(ys ~ reg - 1 | inst - 1) 
+# use homoskedasticity-only asymptotic variance
+ztest <- lmtest::coeftest(fullmodel, df = Inf)
+est <- ztest[(d+1),1] 
+se <- ztest[(d+1),2]
+print(c(est,se))
+# use heteroskedasticity-robust asymptotic variance
+ztest_hc <- lmtest::coeftest(fullmodel, df = Inf, 
+            vcov = sandwich::vcovHC, type = "HC0")
+est_hc <- ztest_hc[(d+1),1] 
+se_hc <- ztest_hc[(d+1),2]
+print(c(est_hc,se_hc))
+```
+
+The 2SLS estimate of the return to education is 0.769 and both types of standard errors are almost the same.  are less precisely estimated than the OLS estimates. Both types of standard errors are almost identical across all sketches for 2SLS. 
+
+We now consider a variety of skecthing schemes.
+
+```{r}
+# sketching methods for 2SLS
+methods <- c("bernoulli","unif","countsketch","srht")
+results_2sls <- array(NA, dim = c(length(methods),3))
+for (met in 1:length(methods)){
+  method <- methods[met]
+    # generate a sketch
+    subsample <- sketch(fullsample, m_2sls, method = method)
+    ys <- subsample[,1]
+    reg <- as.matrix(subsample[,2:(p+2)])
+    inst <- as.matrix(subsample[,(p+3):ncol(subsample)]) 
+    submodel <- ivreg::ivreg(ys ~ reg - 1 | inst - 1) 
+    # use homoskedasticity-only asymptotic variance
+    ztest <- lmtest::coeftest(submodel, df = Inf)
+    est <- ztest[(d+1),1] 
+    se <- ztest[(d+1),2]
+    # use heteroskedasticity-robust asymptotic variance
+    ztest_hc <- lmtest::coeftest(submodel, df = Inf, 
+            vcov = sandwich::vcovHC, type = "HC0")
+    est_hc <- ztest_hc[(d+1),1] 
+    se_hc <- ztest_hc[(d+1),2]
+  results_2sls[met,] <- c(est, se, se_hc)
+}
+rownames(results_2sls) <- methods
+colnames(results_2sls) <- c("est", "non-robust se","robust se")
+print(results_2sls)
+```
+
+
+The sketched 2SLS estimates vary more than the sketched OLS estimates, reflecting that the 2SLS estimates are less precisely estimated than the OLS estimates. As in the full sample case, both types of standard errors are similar across all sketches for 2SLS. 
+
+## References
+
