@@ -30,4 +30,4 @@ You can install the development version from
 
 ## Numerical Illustration
 
-See the vignette for the numerical examples.
+See the vignette for numerical examples.

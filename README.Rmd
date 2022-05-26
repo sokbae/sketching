@@ -36,4 +36,4 @@ You can install the development version from [GitHub](https://github.com/) with:
 
 ## Numerical Illustration
 
-See the vignette for the numerical examples. 
+See the vignette for numerical examples. 
