@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/sokbae/sketching/workflows/R-CMD-check/badge.svg)](https://github.com/sokbae/sketching/actions)
+[![codecov](https://codecov.io/gh/sokbae/sketching/branch/main/graph/badge.svg?token=D6RNLQZUJO)](https://codecov.io/gh/sokbae/sketching)
 <!-- badges: end -->
 
 The package "sketching" is an R package that provides a variety of random sketching methods via random subspace embeddings Researchers may perform regressions using a sketch of data of size $m$ instead of the full sample of size $n$ for a variety of reasons. Lee and Ng (2022) considers the case when the regression errors do not have constant variance and heteroskedasticity robust standard errors would normally be needed for test statistics to provide  accurate inference. It is shown in Lee and Ng (2022) that estimates using data sketched by random projections will behave _as if_ the errors were homoskedastic. Estimation by random sampling would not have this property.  

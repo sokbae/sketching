@@ -15,7 +15,7 @@ LazyData: true
 RoxygenNote: 7.1.2
 Imports: 
     stats,
-    MASS (>= 7.3),
+    MASS,
     Rcpp (>= 1.0.7),
     phangorn (>= 2.8.1)
 LinkingTo: Rcpp

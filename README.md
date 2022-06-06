@@ -6,6 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/sokbae/sketching/workflows/R-CMD-check/badge.svg)](https://github.com/sokbae/sketching/actions)
+[![codecov](https://codecov.io/gh/sokbae/sketching/branch/main/graph/badge.svg?token=D6RNLQZUJO)](https://codecov.io/gh/sokbae/sketching)
 <!-- badges: end -->
 
 The package “sketching” is an R package that provides a variety of
