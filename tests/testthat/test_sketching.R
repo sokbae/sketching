@@ -6,23 +6,6 @@ test_that("m must be strictly smaller than n", {
   
 })
 
-test_that("Different methods generate different results I", {
-  
-  m <- 1000
-  subsample <- sketch(fullsample, m, method = "bernoulli")
-  ys <- subsample[,1]
-  reg <- subsample[,-1]
-  submodel1 <- lm(ys ~ reg - 1) 
-  
-  subsample <- sketch(fullsample, m, method = "countsketch")
-  ys <- subsample[,1]
-  reg <- subsample[,-1]
-  submodel2 <- lm(ys ~ reg - 1) 
-  
-  expect_false(submodel1$coefficients[d+1] == submodel2$coefficients[d+1])
-  
-})
-
 test_that("Different DGPs generate different data", {
   
   data <- simulation_dgp(100, 5, hetero = TRUE)
