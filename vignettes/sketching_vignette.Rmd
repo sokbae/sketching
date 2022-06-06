@@ -313,7 +313,7 @@ m_2sls <- floor(n*S_constant/tau_limit^2)
 print(m_2sls)
 ```
 
-As before, we first obtain the 2OLS estimate using the full sample. 
+As before, we first obtain the 2SLS estimate using the full sample. 
 
 ```{r}
 ys <- fullsample[,1]
@@ -333,9 +333,9 @@ se_hc <- ztest_hc[(d+1),2]
 print(c(est_hc,se_hc))
 ```
 
-The 2SLS estimate of the return to education is 0.769 and both types of standard errors are almost the same.  are less precisely estimated than the OLS estimates. Both types of standard errors are almost identical across all sketches for 2SLS. 
+The 2SLS estimate of the return to education is 0.769; both types of standard errors are almost the same and less precisely estimated than the OLS estimates. Both types of standard errors are almost identical across all sketches for 2SLS. 
 
-We now consider a variety of skecthing schemes.
+We now consider a variety of sketching schemes.
 
 ```{r}
 # sketching methods for 2SLS
