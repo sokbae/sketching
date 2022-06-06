@@ -7,7 +7,7 @@ Authors@R: c(
     person("Serena", "Ng", email = "sn2294@columbia.edu ", role = "aut"))
 Description: Construct sketches of data via random subspace embeddings. 
   For more details, see the following papers.
-  Lee, S. and Ng, S. (2022). "Least Squares Estimation Using Sketched Data with Heteroskedastic Errors," arXiv:2007.07781, accepted for presentation at the Thirty-ninth International Conference on Machine Learning (ICML 2022).
+  Lee, S. and Ng, S. (2022). "Least Squares Estimation Using Sketched Data with Heteroskedastic Errors," <arXiv:2007.07781>, accepted for presentation at the Thirty-ninth International Conference on Machine Learning (ICML 2022).
   Lee, S. and Ng, S. (2020). "An Econometric Perspective on Algorithmic Subsampling," Annual Review of Economics, 12(1): 45–80.
 License: GPL-3
 Encoding: UTF-8
