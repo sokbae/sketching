@@ -6,6 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/sokbae/sketching/workflows/R-CMD-check/badge.svg)](https://github.com/sokbae/sketching/actions)
+[![](https://cranlogs.r-pkg.org/badges/sketching)](https://cran.r-project.org/package=sketching)
 [![codecov](https://codecov.io/gh/sokbae/sketching/branch/main/graph/badge.svg?token=D6RNLQZUJO)](https://app.codecov.io/gh/sokbae/sketching)
 <!-- badges: end -->
 
@@ -31,7 +32,14 @@ For more details, see the following papers.
 
 ## Installation
 
-You can install the development version from
+You can install the released version of sketching from
+[CRAN](https://CRAN.R-project.org) with:
+
+``` r
+install.packages("sketching")
+```
+
+Alternatively, you can install the development version from
 [GitHub](https://github.com/) with:
 
 ``` r
