@@ -1,7 +1,7 @@
 # Rcpp 
 useDynLib(sketching) 
 exportPattern("ˆ[[:alpha:]]+") 
-importFrom(Rcpp, evalCpp)
+importFrom(Rcpp,evalCpp)
 # Command
 export(sketch)
 export(sketch_leverage)

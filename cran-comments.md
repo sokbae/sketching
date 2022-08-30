@@ -5,4 +5,4 @@
 * There were no ERRORs or WARNINGs. 
 
 ## This version
-* This is a first submission to CRAN.
+* This is a second submission to CRAN to fix the errors for the linux debian-clang results.
