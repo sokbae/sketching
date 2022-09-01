@@ -1,8 +1,9 @@
 # Rcpp 
-useDynLib(sketching) 
-exportPattern("^[[:alpha:]]+") 
-importFrom(Rcpp,evalCpp)
+useDynLib(sketching, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+exportPattern("ˆ[[:alpha:]]+") 
 # Command
 export(sketch)
 export(sketch_leverage)
 export(simulation_dgp)
+
