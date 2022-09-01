@@ -1,6 +1,6 @@
 # Rcpp 
 useDynLib(sketching) 
-exportPattern("ˆ[[:alpha:]]+") 
+exportPattern("^[[:alpha:]]+") 
 importFrom(Rcpp,evalCpp)
 # Command
 export(sketch)
