@@ -1,2 +1,2 @@
-# sketching 0.1.0 (2022-06-06)
-* The first version is submitted to CRAN.
+# sketching 0.1.2 (2022-09-06)
+* This version is to fix CRAN errors in r-devel-linux-x86_64-debian-clang.
