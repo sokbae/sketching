@@ -1,7 +1,7 @@
 Package: sketching
 Type: Package
 Title: Sketching of Data via Random Subspace Embeddings
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(
     person("Sokbae", "Lee", email = "sl3841@columbia.edu", role = c("aut", "cre")),
     person("Serena", "Ng", email = "sn2294@columbia.edu ", role = "aut"))
